@@ -21,6 +21,7 @@ var (
     helpStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("#626262")).Render
     workMinutes = flag.Int("work", 25, "Number of minutes to work for")
     breakMinutes = flag.Int("break", 5, "Number of minutes for break")
+    totalSessions = flag.Int("sessions", 5, "Total number of sessions")
 )
 
 func main() {
@@ -77,6 +78,8 @@ type timerModel struct {
     totalMinutes int
     isWorkPhase  bool // Indicates if it is the work phase
     timer        time.Time
+    currentSession int
+    totalSessions int
 }
 
 func initialTimerModel(title string) timerModel {
@@ -89,6 +92,8 @@ func initialTimerModel(title string) timerModel {
         isWorkPhase:  true,
         percent:      0,
         timer:        time.Now(),
+        totalSessions: *totalSessions,
+        currentSession: 5,
     }
 }
 
@@ -100,30 +105,54 @@ func (m timerModel) Init() tea.Cmd {
 func (m timerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
     switch msg.(type) {
     case tickMsg:
-        elapsed := time.Since(m.timer).Minutes()
-        if m.isWorkPhase && elapsed >= float64(*workMinutes) {
-            m.isWorkPhase = false
-            m.totalMinutes = *breakMinutes // Update total minutes for break phase
-            m.timer = time.Now() // Reset timer for break
-            // Re-initialize the progress bar for the break phase with a new color
-            m.progress = progress.New(progress.WithScaledGradient("#76B041", "#A8E05F"))
-            m.percent = 0 // Reset percent for the break phase
-        } else if !m.isWorkPhase && elapsed >= float64(*breakMinutes) {
-            return m, tea.Quit // End after break phase
+        now := time.Now()
+        elapsed := now.Sub(m.timer)
+
+        // Assuming each work/break phase duration is stored in m.totalMinutes
+        // and m.timer is reset at the start of each phase.
+        if elapsed.Minutes() >= float64(m.totalMinutes) {
+            if m.isWorkPhase {
+                // Work phase just finished
+                if m.currentSession < m.totalSessions {
+                    // If not on the last session, start break phase
+                    m.isWorkPhase = false
+                    m.totalMinutes = *breakMinutes
+                    m.timer = now // Reset timer for break phase
+                    m.progress = progress.New(progress.WithScaledGradient("#76B041", "#A8E05F")) // Optional: Adjust for break phase
+                    m.percent = 0 // Reset progress for the break phase
+                } else {
+                    // Last work phase of the last session finished
+                    return m, tea.Quit // All sessions completed
+                }
+            } else {
+                // Break phase just finished
+                m.currentSession++ // Move to the next session
+                if m.currentSession <= m.totalSessions {
+                    // Start the next session's work phase
+                    m.isWorkPhase = true
+                    m.totalMinutes = *workMinutes
+                    m.timer = now // Reset timer for new work phase
+                    m.progress = progress.New(progress.WithScaledGradient("#FF0000", "#FF4500")) // Reset progress for work phase
+                    m.percent = 0 // Reset progress for the new session
+                } else {
+                    // All sessions completed
+                    return m, tea.Quit
+                }
+            }
+        } else {
+            // Update progress based on elapsed time
+            percentComplete := elapsed.Minutes() / float64(m.totalMinutes)
+            m.percent = percentComplete
         }
 
-        // Recalculate percent based on phase
-        if m.isWorkPhase {
-            m.percent = elapsed / float64(*workMinutes)
-        } else {
-            m.percent = elapsed / float64(*breakMinutes)
-        }
-        return m, tickCmd()
+        return m, tickCmd() // Continue updating every tick
 
     case tea.KeyMsg:
+        // Quit on any key press
         return m, tea.Quit
     }
 
+    // Handle other messages like window resize
     return m, nil
 }
 
