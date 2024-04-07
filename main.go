@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/charmbracelet/bubbles/progress"
+  "github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -26,22 +27,62 @@ var (
 func main() {
 	flag.Parse() // Parse the command-line flags
 
-	if _, err := tea.NewProgram(initialModel()).Run(); err != nil {
+  if _, err := tea.NewProgram(initialTitleModel()).Run(); err != nil {
 		fmt.Println("Oh no!", err)
 		os.Exit(1)
 	}
 }
 
+type titleModel struct {
+  textInput textinput.Model
+}
+
+func initialTitleModel() titleModel {
+	ti := textinput.New()
+	ti.Placeholder = "Enter session title"
+	ti.Focus()
+	ti.PromptStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#626262"))
+	ti.TextStyle = lipgloss.NewStyle().Bold(true)
+
+	return titleModel{textInput: ti}
+}
+
+func (m titleModel) Init() tea.Cmd {
+	return textinput.Blink
+}
+
+func (m titleModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.Type {
+		case tea.KeyEnter:
+			// Transition to timer with the entered title
+			return initialModel(m.textInput.Value()), nil
+		case tea.KeyCtrlC, tea.KeyEsc:
+			return m, tea.Quit
+		}
+	}
+
+	m.textInput, cmd = m.textInput.Update(msg)
+	return m, cmd
+}
+
+func (m titleModel) View() string {
+	return "\n" + m.textInput.View() + "\n"
+}
+
 type tickMsg time.Time
 
 type model struct {
+  title        string
 	percent      float64
 	progress     progress.Model
 	totalMinutes int
 	isWorkPhase  bool // Indicates if it is the work phase
 }
 
-func initialModel() model {
+func initialModel(title string) model {
 	// Initialize progress bar with default work color
 	prog := progress.New(progress.WithScaledGradient("#FF7CCB", "#FDFF8C"))
 	return model{progress: prog, totalMinutes: *workMinutes, isWorkPhase: true, percent: 0}
@@ -92,7 +133,7 @@ func (m model) View() string {
 	if !m.isWorkPhase {
 		phase = "Break Time"
 	}
-	return "\n" + pad + phase + "\n\n" +
+	return fmt.Sprintf("\nSession: %s\n\n", m.title) + "\n" + pad + phase + "\n\n" +
 		pad + m.progress.ViewAs(m.percent) + "\n\n" +
 		pad + helpStyle("Press any key to quit")
 }
