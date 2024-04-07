@@ -128,13 +128,14 @@ func (m timerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m timerModel) View() string {
+    progressBarView := m.progress.ViewAs(m.percent)
     phase := "Work Time"
     if !m.isWorkPhase {
         phase = "Break Time"
     }
     // Display session title at the top
-    return fmt.Sprintf("\nSession: %s\n\n%s\n\nProgress: %.2f%%\n\n%s\n",
-        m.title, phase, m.percent*100, helpStyle("Press any key to quit"))
+    return fmt.Sprintf("\nSession: %s\n\n%s\n\n%s\n\n%s\n",
+        m.title, phase, progressBarView, helpStyle("Press any key to quit"))
 }
 
 func tickCmd() tea.Cmd {

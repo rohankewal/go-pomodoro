@@ -16,6 +16,6 @@ Major shoutout to the Charmbracelet team for making these awesome libraries!!
 
 # Roadmap(Planned Features)
 
-- [ ] Add a session title
+- [x] Add a session title
 - [ ] Add lo-fi music
 - [ ] Add notifications for start and end of session
