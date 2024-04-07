@@ -81,7 +81,7 @@ type timerModel struct {
 
 func initialTimerModel(title string) timerModel {
     // Initialize progress bar with default work color
-    prog := progress.New(progress.WithScaledGradient("#FF7CCB", "#FDFF8C"))
+    prog := progress.New(progress.WithScaledGradient("#FF0000", "#FF4500")) // TODO: Change colors to red gradient
     return timerModel{
         title:        title,
         progress:     prog,
