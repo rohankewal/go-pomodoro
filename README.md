@@ -22,5 +22,6 @@ Major shoutout to the [Charm](https://charm.sh/) team for making these awesome l
 # Roadmap(Planned Features)
 
 - [x] Add a session title
+- [ ] Add multiple sessions
 - [ ] Add lo-fi music
 - [ ] Add notifications for start and end of session
