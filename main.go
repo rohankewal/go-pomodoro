@@ -12,10 +12,11 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-const (
+// NOTE: commented this out as it wasn't being used
+/*const (
 	padding  = 2
 	maxWidth = 80
-)
+)*/
 
 var (
 	helpStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("#626262")).Render
@@ -106,41 +107,45 @@ func (m timerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg.(type) {
 	case tickMsg:
 		now := time.Now()
-		elapsed := now.Sub(m.timer).Minutes()
+		elapsed := now.Sub(m.timer)
 
 		// Check if the current phase duration is met
-		if elapsed >= float64(m.totalMinutes) {
-			// Transition from Work to Break phase or proceed to next session
+		if elapsed.Minutes() >= float64(m.totalMinutes) {
+			// Manage the end of a phase
 			if m.isWorkPhase {
-				// End of Work Phase, transition to Break Phase
+				// Transition from Work to Break phase within the same session
 				m.isWorkPhase = false
 				m.totalMinutes = *breakMinutes
 				m.timer = now                                                                // Reset timer for the break phase
-				m.progress = progress.New(progress.WithScaledGradient("#76B041", "#A8E05F")) // Break phase gradient
+				m.progress = progress.New(progress.WithScaledGradient("#76B041", "#A8E05F")) // Adjust for break phase
 				m.percent = 0                                                                // Reset progress for the break phase
-			} else if m.currentSession < m.totalSessions {
-				// End of Break Phase and there are more sessions
-				m.currentSession++ // Move to the next session
-				m.isWorkPhase = true
-				m.totalMinutes = *workMinutes
-				m.timer = now                                                                // Reset timer for the new work phase
-				m.progress = progress.New(progress.WithScaledGradient("#FF0000", "#FF4500")) // Work phase gradient
-				m.percent = 0                                                                // Reset progress for the new session
 			} else {
-				// All sessions completed, including the final break phase
-				return m, tea.Quit
+				// Handle end of break phase here and check for session continuation
+				if m.currentSession < m.totalSessions {
+					// Prepare for the next session
+					m.currentSession++ // Move to the next session
+					m.isWorkPhase = true
+					m.totalMinutes = *workMinutes
+					m.timer = now                                                                // Reset timer for new work phase
+					m.progress = progress.New(progress.WithScaledGradient("#FF0000", "#FF4500")) // Reset for work phase
+					m.percent = 0                                                                // Reset progress for the new session
+				} else {
+					// All sessions completed
+					return m, tea.Quit
+				}
 			}
 		} else {
-			// Regular update of progress within the current phase
-			m.percent = elapsed / float64(m.totalMinutes)
+			// Update progress based on elapsed time
+			m.percent = elapsed.Minutes() / float64(m.totalMinutes)
 		}
 
-		return m, tickCmd() // Schedule the next tick
+		return m, tickCmd() // Ensure continuous ticking
 
 	case tea.KeyMsg:
-		// Quit on any key press
+		// Optionally, handle key messages (like quitting early)
 		return m, tea.Quit
 	}
+
 	return m, nil
 }
 
