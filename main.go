@@ -1,8 +1,10 @@
 package main
 
 import (
+	"embed"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"time"
 
@@ -12,18 +14,37 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-// NOTE: commented this out as it wasn't being used
-/*const (
-	padding  = 2
-	maxWidth = 80
-)*/
-
 var (
 	helpStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("#626262")).Render
 	workMinutes   = flag.Int("work", 25, "Number of minutes to work for")
 	breakMinutes  = flag.Int("break", 5, "Number of minutes for break")
 	totalSessions = flag.Int("sessions", 5, "Total number of sessions")
 )
+
+var musicFile embed.FS
+
+func extractMusic() error {
+	musicData, err := musicFile.ReadFile("path/to/your/music.mp3")
+	if err != nil {
+		return err
+	}
+
+	// Write to temp file
+	tempFile, err := ioutil.TempFile("", "music*.mp3")
+	if err != nil {
+		return err
+	}
+	defer tempFile.Close()
+
+	if _, err := tempFile.Write(musicData); err != nil {
+		return err
+	}
+
+	// Save the path for later use
+	var musicPath = tempFile.Name()
+
+	return nil
+}
 
 func main() {
 	flag.Parse() // Parse the command-line flags
