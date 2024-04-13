@@ -18,10 +18,3 @@ Major shoutout to the [Charm](https://charm.sh/) team for making these awesome l
 # Current Issues
 
 - When the first session ends, the app crashes. It won't start the next session. I belive the issue is with the Update function in the main.go file. I am currently working on fixing this issue.
-
-# Roadmap(Planned Features)
-
-- [x] Add a session title
-- [ ] Add multiple sessions
-- [ ] Add lo-fi music
-- [ ] Add notifications for start and end of session
