@@ -10,6 +10,12 @@ It is built using the Go programming language and these Charmbrace libraries:
 
 Major shoutout to the [Charm](https://charm.sh/) team for making these awesome libraries!!
 
+# How To Use
+
+```bash
+./main -work 25 -break 5 -sessions 5
+```
+
 # Current Features
 
 1. Set the duration of work and break sessions through command line flags
