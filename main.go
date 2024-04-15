@@ -50,8 +50,7 @@ func (m titleModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyEnter:
-			// Ensure the title is captured correctly before transitioning
-			return initialTimerModel(m.textInput.Value()), nil
+			return initialTimerModel(m.textInput.Value()), tickCmd()
 		case tea.KeyCtrlC, tea.KeyEsc:
 			return m, tea.Quit
 		}
@@ -89,7 +88,7 @@ func initialTimerModel(title string) timerModel {
 		percent:        0,
 		timer:          time.Now(),
 		totalSessions:  *totalSessions,
-		currentSession: 1, // Start from the first session
+		currentSession: 1,
 	}
 }
 
@@ -101,28 +100,28 @@ func (m timerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tickMsg:
 		if m.isPaused {
-			return m, nil // Skip updating timer if paused
+			return m, nil
 		}
 
 		now := time.Now()
 		elapsed := now.Sub(m.timer)
-
 		if elapsed.Minutes() >= float64(m.totalMinutes) {
 			if m.isWorkPhase {
 				m.isWorkPhase = false
 				m.totalMinutes = *breakMinutes
-				m.timer = now
+				m.timer = time.Now()
 			} else {
 				if m.currentSession < m.totalSessions {
 					m.currentSession++
 					m.isWorkPhase = true
 					m.totalMinutes = *workMinutes
-					m.timer = now
+					m.timer = time.Now()
 				} else {
 					return m, tea.Quit
 				}
 			}
-			m.percent = 0 // Reset progress at the end of each phase
+			m.percent = 0
+			return m, tickCmd()
 		} else {
 			m.percent = elapsed.Minutes() / float64(m.totalMinutes)
 		}
@@ -131,20 +130,20 @@ func (m timerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "p": // Pause the timer
+		case "p":
 			if !m.isPaused {
 				m.isPaused = true
-				m.pausedTime = time.Now() // Record the time when pause was initiated
+				m.pausedTime = time.Now()
 			}
 			return m, nil
-		case "r": // Resume the timer
+		case "r":
 			if m.isPaused {
 				m.isPaused = false
-				pauseDuration := time.Since(m.pausedTime) // Calculate how long the timer was paused
-				m.timer = m.timer.Add(pauseDuration)      // Adjust the start time by the duration it was paused
+				pauseDuration := time.Since(m.pausedTime)
+				m.timer = m.timer.Add(pauseDuration)
+				return m, tickCmd()
 			}
-			return m, nil
-		case "q", "esc": // Quit the application
+		case "q", "esc":
 			return m, tea.Quit
 		}
 	}
@@ -167,7 +166,6 @@ func (m timerModel) View() string {
 }
 
 func tickCmd() tea.Cmd {
-	// Tick every second to update the timer
 	return tea.Tick(time.Second, func(t time.Time) tea.Msg {
 		return tickMsg(t)
 	})
