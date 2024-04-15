@@ -20,6 +20,7 @@ Major shoutout to the [Charm](https://charm.sh/) team for making these awesome l
 
 1. Set the duration of work and break sessions through command line flags
 2. Asign the session a title
+3. Pause and resume the timer at any time should you need to
 
 # Current Issues
 
