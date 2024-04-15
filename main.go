@@ -50,12 +50,15 @@ func (m titleModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyEnter:
-			return initialTimerModel(m.textInput.Value()), tickCmd()
+			// Ensure the title is captured correctly before transitioning
+			return initialTimerModel(m.textInput.Value()), nil
 		case tea.KeyCtrlC, tea.KeyEsc:
 			return m, tea.Quit
 		}
 	}
-	return m, nil
+	var cmd tea.Cmd
+	m.textInput, cmd = m.textInput.Update(msg)
+	return m, cmd
 }
 
 func (m titleModel) View() string {
