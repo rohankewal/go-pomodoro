@@ -10,6 +10,8 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+
+	"github.com/gen2brain/beeep"
 )
 
 var (
@@ -26,6 +28,14 @@ func main() {
 	if _, err := p.Run(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error running program: %v\n", err)
 		os.Exit(1)
+	}
+}
+
+// Function to show notifications
+func notify(title, message string) {
+	err := beeep.Notify(title, message, "") // Empty string for icon path
+	if err != nil {
+		fmt.Println("Failed to send notification:", err)
 	}
 }
 
@@ -107,10 +117,12 @@ func (m timerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		elapsed := now.Sub(m.timer)
 		if elapsed.Minutes() >= float64(m.totalMinutes) {
 			if m.isWorkPhase {
+				notify("Pomodoro Timer", "Work session complete! Time for a break.")
 				m.isWorkPhase = false
 				m.totalMinutes = *breakMinutes
 				m.timer = time.Now()
 			} else {
+				notify("Pomodoro Timer", "Break is over! Time to get back to work.")
 				if m.currentSession < m.totalSessions {
 					m.currentSession++
 					m.isWorkPhase = true
