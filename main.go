@@ -33,7 +33,7 @@ func main() {
 
 // Function to show notifications
 func notify(title, message string) {
-	err := beeep.Notify(title, message, "") // Empty string for icon path
+	err := beeep.Notify(title, message, "/assets/pom-cmd-icon.webp") // Empty string for icon path
 	if err != nil {
 		fmt.Println("Failed to send notification:", err)
 	}
@@ -117,12 +117,12 @@ func (m timerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		elapsed := now.Sub(m.timer)
 		if elapsed.Minutes() >= float64(m.totalMinutes) {
 			if m.isWorkPhase {
-				notify("Pomodoro Timer", "Work session complete! Time for a break.")
+				notify("Pom-Cmd", "Work session complete! Time for a break.")
 				m.isWorkPhase = false
 				m.totalMinutes = *breakMinutes
 				m.timer = time.Now()
 			} else {
-				notify("Pomodoro Timer", "Break is over! Time to get back to work.")
+				notify("Pom-Cmd", "Break is over! Time to get back to work.")
 				if m.currentSession < m.totalSessions {
 					m.currentSession++
 					m.isWorkPhase = true
