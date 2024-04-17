@@ -122,6 +122,7 @@ func (m timerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.isWorkPhase = false
 				m.totalMinutes = *breakMinutes
 				m.timer = now
+				m.progress = progress.New(progress.WithScaledGradient("#76B041", "#A8E05F"))
 			} else {
 				// Break phase ends
 				notify("Pomodoro Timer", "Break is over! Time to get back to work.")
@@ -130,6 +131,7 @@ func (m timerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.isWorkPhase = true
 					m.totalMinutes = *workMinutes
 					m.timer = now
+					m.progress = progress.New(progress.WithScaledGradient("#FF0000", "#FF4500"))
 				} else {
 					return m, tea.Quit
 				}
