@@ -109,46 +109,49 @@ func (m timerModel) Init() tea.Cmd {
 func (m timerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tickMsg:
+		now := time.Now() // Define 'now' here for tickMsg case
 		if m.isPaused {
 			return m, nil
 		}
 
-		now := time.Now()
 		elapsed := now.Sub(m.timer)
 		if elapsed.Minutes() >= float64(m.totalMinutes) {
 			if m.isWorkPhase {
-				notify("Pom-Cmd", "Work session complete! Time for a break.")
+				// Work phase ends, start break phase
+				notify("Pomodoro Timer", "Work session complete! Time for a break.")
 				m.isWorkPhase = false
 				m.totalMinutes = *breakMinutes
-				m.timer = time.Now()
+				m.timer = now
 			} else {
-				notify("Pom-Cmd", "Break is over! Time to get back to work.")
+				// Break phase ends
+				notify("Pomodoro Timer", "Break is over! Time to get back to work.")
 				if m.currentSession < m.totalSessions {
 					m.currentSession++
 					m.isWorkPhase = true
 					m.totalMinutes = *workMinutes
-					m.timer = time.Now()
+					m.timer = now
 				} else {
 					return m, tea.Quit
 				}
 			}
 			m.percent = 0
 			return m, tickCmd()
-		} else {
-			m.percent = elapsed.Minutes() / float64(m.totalMinutes)
 		}
 
+		m.percent = elapsed.Minutes() / float64(m.totalMinutes)
 		return m, tickCmd()
 
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "p":
+			now := time.Now() // Define 'now' here for "p" case
 			if !m.isPaused {
 				m.isPaused = true
-				m.pausedTime = time.Now()
+				m.pausedTime = now
 			}
 			return m, nil
 		case "r":
+			// now := time.Now() // Define 'now' here for "r" case
 			if m.isPaused {
 				m.isPaused = false
 				pauseDuration := time.Since(m.pausedTime)
