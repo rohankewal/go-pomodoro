@@ -179,7 +179,7 @@ func (m timerModel) View() string {
 		status = " (Paused)"
 	}
 	return fmt.Sprintf("\nSession: %s\n\n%s%s\n\n%s\n\n%s\n",
-		m.title, phase, status, progressBarView, helpStyle("Press 'p' to pause, 'r' to resume, 'q' to quit"))
+		m.title, phase, status, progressBarView, helpStyle("Press 'p' to pause, 'r' to resume, 'q' to quit\n Version 1.0 built by: Rohan Kewalramani"))
 }
 
 func tickCmd() tea.Cmd {
